@@ -19,7 +19,7 @@ func New(cfg *config.Config) (*http.Transport, error) {
 	}
 
 	baseDialer := &net.Dialer{
-		Timeout:   cfg.Proxy.RequestTimeout,
+		Timeout:   cfg.Proxy.RequestTimeout.Duration,
 		KeepAlive: 30 * time.Second,
 	}
 
@@ -27,9 +27,9 @@ func New(cfg *config.Config) (*http.Transport, error) {
 		DialContext:           baseDialer.DialContext,
 		ForceAttemptHTTP2:     true,
 		MaxIdleConns:          100,
-		IdleConnTimeout:       cfg.Proxy.IdleTimeout,
+		IdleConnTimeout:       cfg.Proxy.IdleTimeout.Duration,
 		TLSHandshakeTimeout:   10 * time.Second,
-		ResponseHeaderTimeout: cfg.Proxy.RequestTimeout,
+		ResponseHeaderTimeout: cfg.Proxy.RequestTimeout.Duration,
 		ExpectContinueTimeout: 1 * time.Second,
 	}
 

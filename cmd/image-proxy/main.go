@@ -17,7 +17,7 @@ import (
 
 func main() {
 	var configPath string
-	flag.StringVar(&configPath, "config", "./configs/example.toml", "path to TOML configuration file")
+	flag.StringVar(&configPath, "config", "./configs/dev.toml", "path to TOML configuration file")
 	flag.Parse()
 
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)

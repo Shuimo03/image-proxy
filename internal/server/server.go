@@ -41,7 +41,8 @@ func New(cfg *config.Config, transport http.RoundTripper, logger *logging.Logger
 	}
 
 	engine.GET("/healthz", s.healthz)
-	engine.Any("/*proxyPath", s.reverseProxyHandler)
+	engine.NoRoute(s.reverseProxyHandler)
+	engine.NoMethod(s.reverseProxyHandler)
 
 	return s, nil
 }
@@ -74,9 +75,9 @@ func (s *Server) Start(ctx context.Context) error {
 	httpServer := &http.Server{
 		Addr:              s.cfg.Proxy.ListenAddr,
 		Handler:           s.engine,
-		ReadHeaderTimeout: s.cfg.Proxy.ReadHeaderTimeout,
-		IdleTimeout:       s.cfg.Proxy.IdleTimeout,
-		WriteTimeout:      s.cfg.Proxy.RequestTimeout,
+		ReadHeaderTimeout: s.cfg.Proxy.ReadHeaderTimeout.Duration,
+		IdleTimeout:       s.cfg.Proxy.IdleTimeout.Duration,
+		WriteTimeout:      s.cfg.Proxy.RequestTimeout.Duration,
 	}
 	errCh := make(chan error, 1)
 

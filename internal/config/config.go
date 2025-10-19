@@ -18,10 +18,10 @@ type Config struct {
 
 // ProxyConfig contains listener and timeout settings for the proxy server.
 type ProxyConfig struct {
-	ListenAddr        string        `toml:"listen_addr"`
-	ReadHeaderTimeout time.Duration `toml:"read_header_timeout"`
-	RequestTimeout    time.Duration `toml:"request_timeout"`
-	IdleTimeout       time.Duration `toml:"idle_timeout"`
+	ListenAddr        string   `toml:"listen_addr"`
+	ReadHeaderTimeout Duration `toml:"read_header_timeout"`
+	RequestTimeout    Duration `toml:"request_timeout"`
+	IdleTimeout       Duration `toml:"idle_timeout"`
 }
 
 // UpstreamConfig defines the target registry or HTTP service to forward requests to.
@@ -68,14 +68,39 @@ func (c *Config) Validate() error {
 	if c.Clash.Host == "" || c.Clash.Port == 0 {
 		return errors.New("clash.host and clash.port are required")
 	}
-	if c.Proxy.ReadHeaderTimeout == 0 {
-		c.Proxy.ReadHeaderTimeout = 5 * time.Second
+	if c.Proxy.ReadHeaderTimeout.Duration == 0 {
+		c.Proxy.ReadHeaderTimeout.Duration = 5 * time.Second
 	}
-	if c.Proxy.RequestTimeout == 0 {
-		c.Proxy.RequestTimeout = 60 * time.Second
+	if c.Proxy.RequestTimeout.Duration == 0 {
+		c.Proxy.RequestTimeout.Duration = 60 * time.Second
 	}
-	if c.Proxy.IdleTimeout == 0 {
-		c.Proxy.IdleTimeout = 90 * time.Second
+	if c.Proxy.IdleTimeout.Duration == 0 {
+		c.Proxy.IdleTimeout.Duration = 90 * time.Second
 	}
 	return nil
+}
+
+// Duration wraps time.Duration to allow decoding human-readable strings from TOML.
+type Duration struct {
+	time.Duration
+}
+
+// UnmarshalText parses values like "5s" or "1m30s" into a Duration.
+func (d *Duration) UnmarshalText(text []byte) error {
+	// Treat empty values as zero without error.
+	if len(text) == 0 {
+		d.Duration = 0
+		return nil
+	}
+	parsed, err := time.ParseDuration(string(text))
+	if err != nil {
+		return fmt.Errorf("parse duration: %w", err)
+	}
+	d.Duration = parsed
+	return nil
+}
+
+// MarshalText allows Duration to be encoded back into TOML if needed.
+func (d Duration) MarshalText() ([]byte, error) {
+	return []byte(d.Duration.String()), nil
 }
