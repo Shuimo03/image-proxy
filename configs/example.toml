@@ -1,0 +1,13 @@
+[proxy]
+listen_addr = "0.0.0.0:5000"
+read_header_timeout = "5s"
+request_timeout = "60s"
+idle_timeout = "90s"
+
+[upstream]
+url = "https://registry-1.docker.io"
+
+[clash]
+mode = "http"
+host = "10.0.0.10"
+port = 7890

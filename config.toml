@@ -1,0 +1,42 @@
+[proxy]
+  listen_addr     = "0.0.0.0:5000"      # Go proxy 对外暴露的地址
+  api_addr        = "127.0.0.1:5001"    # 可选：管理接口，供健康检查或动态配置
+  cache_root      = "/var/lib/image-proxy/cache"  # 可选：本地镜像层缓存目录
+  max_concurrency = 32                  # 并发拉取层数，控制带宽与资源占用
+
+  [proxy.timeout]
+  dial   = "5s"    # 连接 Clash 的超时时间
+  read   = "60s"   # 拉取镜像层的响应超时
+  write  = "60s"
+  idle   = "90s"   # 长连接空闲超时
+
+  [proxy.registry]
+  default_scheme = "https"
+  force_https    = true
+  allow_http     = ["10.0.0.0/8"]       # 在内网或自建仓库需要 HTTP 时列出网段/地址
+
+  [[proxy.registry.mirror]]
+  match   = "registry-1.docker.io"
+  rewrite = "mirror.local.lan"
+  scheme  = "https"                     # 对常用仓库做域名 rewrite，可选
+
+  [clash]
+  mode          = "http"                # clash 节点暴露的是 http/socks5/transparent
+  server        = "10.9.0.12"
+  port          = 7890
+  auth_username = ""
+  auth_password = ""
+  skip_verify   = false                 # 如果 clash 节点走自签证书，需要跳过验证
+
+  [clash.health_check]
+  interval = "30s"
+  url      = "https://www.google.com/generate_204"  # 可换成你所在区域可达的地址
+
+  # 可选：针对 Helm/Chart 仓库做额外配置
+  [helm]
+  rewrite_host = true
+  allowed_hosts = [
+    "charts.bitnami.com",
+    "artifacthub.io",
+    "my.internal.chart.repo"
+  ]
