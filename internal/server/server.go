@@ -40,6 +40,7 @@ func New(cfg *config.Config, transport http.RoundTripper, logger *logging.Logger
 		logger:      logger,
 	}
 
+	engine.Use(s.requestLogger())
 	engine.GET("/healthz", s.healthz)
 	engine.NoRoute(s.reverseProxyHandler)
 	engine.NoMethod(s.reverseProxyHandler)
@@ -68,6 +69,39 @@ func (s *Server) reverseProxyHandler(c *gin.Context) {
 	}
 
 	reverseProxy.ServeHTTP(c.Writer, c.Request)
+}
+
+func (s *Server) requestLogger() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		start := time.Now()
+		requestPath := c.Request.URL.Path
+		query := c.Request.URL.RawQuery
+		clientIP := c.ClientIP()
+		method := c.Request.Method
+
+		c.Next()
+
+		duration := time.Since(start)
+		status := c.Writer.Status()
+		log := s.logger.With(
+			"status", status,
+			"method", method,
+			"path", requestPath,
+			"query", query,
+			"client_ip", clientIP,
+			"user_agent", c.Request.UserAgent(),
+			"bytes_in", c.Request.ContentLength,
+			"bytes_out", c.Writer.Size(),
+			"duration_ms", duration.Milliseconds(),
+		)
+
+		if len(c.Errors) > 0 {
+			log.Error("request completed with errors", "errors", c.Errors.String())
+			return
+		}
+
+		log.Info("request completed")
+	}
 }
 
 // Start launches the HTTP server and blocks until context cancelled or server errors.

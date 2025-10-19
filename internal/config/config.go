@@ -14,6 +14,7 @@ type Config struct {
 	Proxy    ProxyConfig    `toml:"proxy"`
 	Upstream UpstreamConfig `toml:"upstream"`
 	Clash    ClashConfig    `toml:"clash"`
+	Logging  LoggingConfig  `toml:"logging"`
 }
 
 // ProxyConfig contains listener and timeout settings for the proxy server.
@@ -34,6 +35,11 @@ type ClashConfig struct {
 	Mode string `toml:"mode"`
 	Host string `toml:"host"`
 	Port int    `toml:"port"`
+}
+
+// LoggingConfig defines where structured logs should be persisted.
+type LoggingConfig struct {
+	Dir string `toml:"dir"`
 }
 
 // Load reads configuration from path.
@@ -67,6 +73,9 @@ func (c *Config) Validate() error {
 	}
 	if c.Clash.Host == "" || c.Clash.Port == 0 {
 		return errors.New("clash.host and clash.port are required")
+	}
+	if c.Logging.Dir == "" {
+		c.Logging.Dir = "logs"
 	}
 	if c.Proxy.ReadHeaderTimeout.Duration == 0 {
 		c.Proxy.ReadHeaderTimeout.Duration = 5 * time.Second

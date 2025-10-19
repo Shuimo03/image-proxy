@@ -43,11 +43,15 @@ url = "https://registry-1.docker.io"  # 上游镜像仓库或 HTTP 服务
 mode = "http"                    # 支持 http/https/socks5
 host = "10.0.0.10"               # Clash 节点地址
 port = 7890                       # Clash 端口
+
+[logging]
+dir = "logs"                     # 本地日志输出目录，按分钟滚动
 ```
 
 - `proxy`：控制监听端口和各类超时时间，便于根据不同网络情况调整。
 - `upstream`：指向实际的镜像源，可替换为企业私有镜像仓库。
 - `clash`：定义可选的出口代理；如果无需代理，可在配置中省略该段，并在 `internal/config` 中扩展逻辑以允许空值。
+- `logging`：配置本地日志目录，程序会按分钟滚动写入 `2025-10-19-21:57.log` 这类文件，便于审计访问请求。
 
 在 Kubernetes 中部署时，建议复制 `configs/dev.toml` 生成环境专用的配置，并通过 ConfigMap 或 Secret 挂载到容器，配合启动参数 `--config` 指定路径。
 
